@@ -1,0 +1,13 @@
+{
+  "name": "drawquest",
+  "module": "src/index.ts",
+  "devDependencies": {
+    "@types/node": "^20.6.3",
+    "bun-types": "latest",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "bun run config.js"
+  },
+  "type": "module"
+}
