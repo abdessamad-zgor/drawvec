@@ -14,9 +14,12 @@ class DrawQuestApp extends EventTarget {
         this.renderer = new Renderer(this);
 
         let { onmousemove, onmousedown, onmouseup } = this.toolbar.selectedTool().initialise.call(this);
+        // attach event-listeners from default selected 
+        let { onmousemove, onmousedown, onmouseup, onclick } = this.toolbar.selectedTool().initialise.call(this);
         this.canvas.onmousemove = onmousemove;
         this.canvas.onmouseup = onmouseup;
         this.canvas.onmousedown = onmousedown;
+        this.canvas.onclick = onclick ? onclick:()=>({});
     }
 
     initialise() {
