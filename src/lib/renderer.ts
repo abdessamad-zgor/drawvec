@@ -2,9 +2,13 @@ import { DrawQuestApp } from "../main";
 import type {QuestShape} from "./utils"
 
 class Renderer extends EventTarget {
+    // holds the current object being edited
     _current: QuestShape | null;
+    // shadow context used to (hopefully) speed-up rerenders
     _Qcontext: CanvasRenderingContext2D;
+    // the objects array holds the shapes on the canvas
     objects: QuestShape[];
+    // an object-reference to the app 
     appRef : DrawQuestApp;
 
     constructor (app: DrawQuestApp ) {

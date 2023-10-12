@@ -4,7 +4,6 @@ import { Toolbar } from "./lib/tools";
 class DrawQuestApp extends EventTarget {
     renderer: Renderer;
     toolbar: Toolbar;
-    canvasId: string;
     canvas: HTMLCanvasElement;
 
     constructor(canvasId: string) {
