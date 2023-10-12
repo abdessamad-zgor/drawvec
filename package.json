@@ -3,6 +3,7 @@
   "module": "src/index.ts",
   "devDependencies": {
     "@types/node": "^20.6.3",
+    "@types/web": "^0.0.115",
     "bun-types": "latest",
     "typescript": "^5.2.2"
   },

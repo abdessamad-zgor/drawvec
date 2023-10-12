@@ -1,5 +1,6 @@
 import { DrawQuestApp } from "./main";
 
-let app = new DrawQuestApp("canvas");
+// initialse Drawquest with canvas id
+let app = new DrawQuestApp("drawquest");
 
 app.initialise();
