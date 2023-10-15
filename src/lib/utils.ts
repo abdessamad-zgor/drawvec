@@ -108,6 +108,7 @@ export const UpdateShape = function(this: QuestShape , e:MouseEvent):void{
     }
 }
 
+// returns boolean if point p is in the range of a certain shape
 export function inRect(p:[number, number], coords: QuestShape['_coords']):boolean {
     return p[0]>coords[0][0] && p[0]<coords[1][0] && p[1]>coords[0][1] && p[1]<coords[3][1]
 }

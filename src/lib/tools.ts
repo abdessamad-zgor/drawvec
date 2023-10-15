@@ -1,16 +1,18 @@
 import { DrawQuestApp } from "../main";
 import { QuestShape, QuestType, Tool, genrateRef, UpdateShape, Ellipse, Rectangle, SelectionRect, RangeMargin, inRect } from "./utils";
 
-// create an eliiipse shape
+// creates and draws, elliptical shapes
 class EllipseTool implements Tool<Ellipse> { 
-  active: boolean;
-  type: QuestType;
+  active: boolean; // true if tool is currently toggled
+  type: QuestType; // represents the type of QuestShape created
 
   constructor() {
     this.active = false;
     this.type = "ellipse";
   }
 
+  // setup tool behavior on specific event
+  // for this stage this is enough but more complex tools will require a diffrent mechanism 
   initialise(this: DrawQuestApp){
     let onmousemove = (e: Event)=>{
       let current = this.renderer.getCurrentObject() as QuestShape;
@@ -33,6 +35,7 @@ class EllipseTool implements Tool<Ellipse> {
       return {onmousedown, onmousemove, onmouseup};
   }
 
+  // draw ellipse according to provided object
   draw(this: CanvasRenderingContext2D, q: Ellipse): void {
     let coords = q.coords();
     
@@ -43,27 +46,30 @@ class EllipseTool implements Tool<Ellipse> {
     this.stroke()
   }
 
+  // toggle active value to true
   on(){
     this.active = true;
   }
 
+  // toggle active value to false
   off() {
     this.active = false;
   }
 
+  // toggle active value to true
   create(e:MouseEvent): Ellipse {
     let ellipse =  {
       ref: genrateRef(),
       type: "ellipse",
       origin: [e.clientX, e.clientY],
       _coords: [[e.clientX, e.clientY], [e.clientX+2, e.clientY], [e.clientX+2, e.clientY+2], [e.clientX, e.clientY+2] ],
-      coords: function(this){
+      coords: function(this:Ellipse){
         let width = Math.abs(this._coords[0][0]-this._coords[1][0]);
         let height = Math.abs(this._coords[0][1]-this._coords[3][1]);
 
         return {center: [this._coords[0][0]+width/2, this._coords[0][1]+height/2], radiusX: width/2, radiusY: height/2}
       },
-      update: function(this, e:MouseEvent){
+      update: function(this:Ellipse, e:MouseEvent){
         UpdateShape.call(this, e)
       }
     } as Ellipse
@@ -74,8 +80,9 @@ class EllipseTool implements Tool<Ellipse> {
 
 }
 
+// create and draw rectangular shapes
 class RectangleTool implements Tool<Rectangle> {
-  active: boolean;
+  active: boolean; // is tool toggled
   type: QuestType;
   
   constructor() {
@@ -83,6 +90,7 @@ class RectangleTool implements Tool<Rectangle> {
     this.type = "rectangle";
   }
 
+  // setup event listners on the canvas
   initialise(this: DrawQuestApp){
 
     let onmousemove = (e: Event)=>{
@@ -129,14 +137,14 @@ class RectangleTool implements Tool<Rectangle> {
       type: "rectangle",
       origin: [e.clientX, e.clientY ],
       _coords: [[e.clientX, e.clientY], [e.clientX+2, e.clientY], [e.clientX+2, e.clientY+2], [e.clientX, e.clientY+2] ],
-      coords(this) {
+      coords(this: Rectangle) {
         return {
           start: this._coords[0],
           w: Math.abs(this._coords[0][0]-this._coords[1][0]),
           h: Math.abs(this._coords[0][1]-this._coords[3][1])
         }
       },
-      update(this, e: MouseEvent) {
+      update(this:Rectangle, e: MouseEvent) {
         UpdateShape.call(this, e)
       }
     } as Rectangle;
@@ -151,123 +159,118 @@ class SelectionTool implements Tool<SelectionRect> {
   type: QuestType;
   
   constructor() {
-      this.active = false;
-      this.type = "selection";
+    this.active = false;
+    this.type = "selection";
   }
 
   initialise(this: DrawQuestApp){
-      let onmousemove = (e: MouseEvent)=>{
-          
-          let current = this.renderer.getCurrentObject() ;
-          if(current) {
-              current.update(e);
-              let rerenderEvent = new CustomEvent("rerender", { detail: { tools: this.toolbar.tools } })
-              this.renderer.dispatchEvent(rerenderEvent);
-          } else {
-              let tool = this.toolbar.selectedTool() as SelectionTool;
-              let shapeInRange = tool.shapeInRange(e, this.renderer.objects);
-              if(shapeInRange) {
-                  this.canvas.style.cursor = "pointer"
-              }else{
-                  this.canvas.style.cursor = "default"
-              }
-          }
+  let onmousemove = (e: MouseEvent)=>{ 
+      // how many cases for on mousemove
+      let current = this.renderer.getCurrentObject() ;
+      if(current) {
+        current.update(e);
+        let rerenderEvent = new CustomEvent("rerender", { detail: { tools: this.toolbar.tools } })
+        this.renderer.dispatchEvent(rerenderEvent);
+      } else {
+        let tool = this.toolbar.selectedTool() as SelectionTool;
+        let shapeInRange = tool.shapeInRange(e, this.renderer.objects);
+        if(shapeInRange) this.canvas.style.cursor = "pointer"
+        else this.canvas.style.cursor = "default"
       }
+    }
 
-      let onmousedown = (e: Event)=>{
-          let newShape = this.toolbar.selectedTool().create(e);
-          this.renderer.setCurrentObject(newShape)
-      }
+    let onmousedown = (e: Event)=>{
+      let newShape = this.toolbar.selectedTool().create(e);
+      this.renderer.setCurrentObject(newShape)
+    }
 
-      let onmouseup = (e: Event)=>{
-          let current = this.renderer.getCurrentObject();
-          current?.update(e)
-          this.renderer.setCurrentObject(null)
-      }
+    let onmouseup = (e: Event)=>{
+      let current = this.renderer.getCurrentObject();
+      current?.update(e)
+      this.renderer.setCurrentObject(null)
+    }
 
-      let onclick = (e:Event)=>{
-          let currentObject = this.renderer.getCurrentObject();
-          if()
-          
-      }
+    let onclick = (e:Event)=>{
+      let currentObject = this.renderer.getCurrentObject();
+      if(true){}
+        
+    }
 
-      return {onmousedown, onmousemove, onmouseup}
+    return {onmousedown, onmousemove, onmouseup, onclick}
   }
 
   draw(this: CanvasRenderingContext2D, q: QuestShape): void {
-      let coords = q.coords()
-      this.beginPath();
-      this.strokeStyle = "blue";
-      this.fillStyle = "#6495ED98"
-      this.rect(coords.start[0], coords.start[1], coords.w, coords.h);
-      this.stroke()
+    let coords = q.coords()
+    this.beginPath();
+    this.strokeStyle = "blue";
+    this.fillStyle = "#6495ED98"
+    this.rect(coords.start[0], coords.start[1], coords.w, coords.h);
+    this.stroke()
   }
 
   on(){
-      this.active = true;
+    this.active = true;
   }
 
   off() {
-      this.active = false;
+    this.active = false;
   }
   // replace return type with SelectionRect
   create(e:MouseEvent): SelectionRect {
-      let shape = {
-          ref: genrateRef(),
-          type: "selection",
-          origin: [e.clientX, e.clientY ],
-          _coords: [
-              [e.clientX, e.clientY],
-              [e.clientX+2, e.clientY],
-              [e.clientX+2, e.clientY+2],
-              [e.clientX, e.clientY+2] 
-          ],
-          coords(this) {
-              return {
-                  start: this._coords[0],
-                  w: Math.abs(this._coords[0][0]-this._coords[1][0]),
-                  h: Math.abs(this._coords[0][1]-this._coords[3][1])
-              }
-          },
+    let shape = {
+      ref: genrateRef(),
+      type: "selection",
+      origin: [e.clientX, e.clientY ],
+      _coords: [
+        [e.clientX, e.clientY],
+        [e.clientX+2, e.clientY],
+        [e.clientX+2, e.clientY+2],
+        [e.clientX, e.clientY+2] 
+      ],
+      coords(this) {
+        return {
+          start: this._coords[0],
+          w: Math.abs(this._coords[0][0]-this._coords[1][0]),
+          h: Math.abs(this._coords[0][1]-this._coords[3][1])
+        }
+      },
 
-          update(this, e: MouseEvent) {
-              UpdateShape.call(this, e)
-          },
+      update(this, e: MouseEvent) {
+        UpdateShape.call(this, e)
+      },
 
-          children: [],
+      children: [],
 
-          getBoundingRect(this){
-              if(this.children.length==0){
+      getBoundingRect(this){
+        if(this.children.length==0){
 
-                  this._coords = [ [0,0],[0,0],[0,0],[0,0]]
+          this._coords = [ [0,0],[0,0],[0,0],[0,0] ]
+          return { start: [0,0], w:0, h:0 }   
+        } else {
 
-                  return { start: [0,0], w:0,h:0 }   
+          let boundX = [
+            Math.min(...this.children.map((v,i)=>v._coords[i][0])),
+            Math.max(...this.children.map((v,i)=>v._coords[i][0]))
+          ];
 
-              } else {
+          let boundY = [
+            Math.min(...this.children.map((v,i)=>v._coords[i][1])),
+            Math.max(...this.children.map((v,i)=>v._coords[i][1]))
+          ];
 
-                  let boundX = [
-                      Math.min(...this.children.map((v,i)=>v._coords[i][0])),
-                      Math.max(...this.children.map((v,i)=>v._coords[i][0]))
-                  ];
+          this._coords = [
+            [boundX[0]-RangeMargin, boundY[0]-RangeMargin],
+            [boundX[1]+RangeMargin, boundY[0]-RangeMargin], 
+            [boundX[1]+RangeMargin, boundY[1]+RangeMargin], 
+            [boundX[0]-RangeMargin, boundY[1]+RangeMargin]
+          ];
 
-                  let boundY = [
-                      Math.min(...this.children.map((v,i)=>v._coords[i][1])),
-                      Math.max(...this.children.map((v,i)=>v._coords[i][1]))
-                  ];
+          return this.coords()
+        }
+      }
+    } as SelectionRect;
 
-                  this._coords = [
-                      [boundX[0]-RangeMargin, boundY[0]-RangeMargin],
-                      [boundX[1]+RangeMargin, boundY[0]-RangeMargin], 
-                      [boundX[1]+RangeMargin, boundY[1]+RangeMargin], 
-                      [boundX[0]-RangeMargin, boundY[1]+RangeMargin]
-                  ];
-
-                  return this.coords()
-              }
-          }
-      } as SelectionRect;
-
-      return shape
+    return shape
   }
 
   shapeInRange(e:MouseEvent, objects: QuestShape[]){
