@@ -22,6 +22,41 @@ import { Renderer } from "./renderer";
 import { QuestShape, Tool } from "./utils";
 import { Toolbar } from "./tools/index";
 
+/**
+ * given a this context that extends EventTarget , eventName and detail , it will create a custom event with the
+ * params eventName and detail and dispatch it to the this context 
+ * */
+export function event(this: EventTarget, eventName: string, detail: any) {
+  let event = new CustomEvent(eventName, {detail: {...detail}});
+  this.dispatchEvent(event);
+};
+
+/**
+ * request a rerender from the Rendrer object
+ * */
+export function requestRerender(target: Renderer, tools:  Toolbar["tools"] ){
+  event.call(target, "rerender", {tools});
+}
+
+
+export function listener<T extends any>(this: T, eventName: string, f: <E extends Event> (e:E)=>void){
+  return {
+    name: eventName,
+    listener: f.bind(this)
+  }
+}
+
+///**
+// * attach an event listner to the given target
+// */
+//
+//// this needs an adjustement because xhen called previous event-listners are not removed 
+//// then the new one is attach meaning when we attach a 'somehow' the old one is automatically
+//// removed.
+//export function attach<T extends EventTarget>( this: T, eventListener: ReturnType< typeof listener>){
+//  this.addEventListener(eventListener.name, eventListener.listener)
+//}
+
 // update a shape on mouse move
 // export function update()
 
@@ -48,72 +83,73 @@ export class Manager {
   renderer: Renderer;
   app: DrawQuestApp;
   currentMode: Mode;
+  events: {[key: string]: ReturnType<typeof listener>["listener"]}
 
   constructor(toolbar: Toolbar, renderer: Renderer, app: DrawQuestApp ){
     this.toolbar = toolbar;
     this.renderer = renderer;
     this.app = app;
     this.currentMode = new Mode("selection")
+    this.events = {}
   }
 
-
-}
-
-
-
-// show a select cursor when a shape is in mouse range
-// export function updateCursor()
-
-// attach new event listners and remove the old ones
-// export attachListners()
-export function attachCanvasListners(canvas:HTMLCanvasElement, mode: string, tool: Tool<QuestShape>){
-  let listners = tool.initialise();
-  for (let k of Object.keys(listners)){
-    canvas[k as keyof HTMLCanvasElement] = listners[mode][k]
+  attachCanvasEventListener(r: ReturnType<typeof listener>){
+    // guard against incorrect use (event name not a native DOM event)
+    if(this.events[r.name]){
+      this.app.canvas.removeEventListener(r.name, this.events[r.name])
+    } 
+    this.events[r.name] = r.listener;
+    this.app.canvas.addEventListener(r.name, r.listener)
   }
-}
 
-// detects which mode is the app is currently in if the mode is not the same as the current ones
-// update the current mode
-// export function updateMode()
+  bindListener(){
+    return listener.bind(this)
+  }
 
-
-export function event(this: EventTarget, eventName: string, detail: any) {
-  let event = new CustomEvent(eventName, {detail: {...detail}});
-  this.dispatchEvent(event);
-};
-
-// request a rerender from the Rendrer object
-export function requestRerender(target: Rendrer, tools: typeof Toolbar.tools ){
-  event("rerender", target, {tools});
-}
-
-export function listener<R>(f: (...args: any[])=>R, args: T ){
-  return function (this: EventTarget, eventName: string, detail: any){
-    return (e: Event)=>{
-      f(args);
-      event.call(this, eventName, {tools: detail})
+  attachTargetEventListener<T extends EventTarget & {events: Map<string, ReturnType<typeof listener>["listener"]>}>(target: T, r: ReturnType<typeof listener>){
+    if(target.events.get(r.name)) {
+      target.removeEventListener(r.name, target.events.get(r.name) ?? null);// used null so TS compiler would shut the fuck up
     }
+    target.events.set(r.name ,r.listener);
+    target.addEventListener(r.name, r.listener);
+  }
+
+  bindTargetListener<T extends EventTarget & {events: {[key: string]: ReturnType<typeof listener>["listener"]}}>(target: T ){
+    return listener.bind(target);
   }
 }
 
-export function attach<T extends EventTarget,P ,R>( this: T, eventName: string, f:({...args}:P)=>R ){
-  let listner = listener(f, args)
-  this.addEventListener(eventName, (e)=>{
-    f(e as P)
-  })
-}
+
+/**
+ * events:                          listeners:
+ *        - addObject         [X]             []
+ *        - updateObject      [X]             []
+ *        - removeObject      [X]             []
+ *        - selectObject      [X]             []
+ *        - highlightObject   [X]             []
+ *        - resizeObject      [X]             []
+ *        - customizeObject   [X]             []
+ *        - addToRange        [X]             []
+ *        - removeFromRange   [X]             []
+ *        - resizeRange       [X]             []
+ *        - selectTool        [X]             []
+ * */
+
 
 // event functions
+
 // event listner functions should be changed to normal anonymous functions
 // should only be used with call
 
 /**
  * adds an object to the objects array in the renderer
  */
-export function addObject<F extends Tool<any>>(this: F, f:<T>(e: MouseEvent)=>void|T){
+export function addObject<F extends Tool<any>>(this: F, f:<T>(this: F,e: MouseEvent)=>undefined|T){
   const boundF = f.bind(this)
   let listener =function  <T extends Manager>(this:T, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
     let object = boundF(e);
     if(object) {
       event.call(this.renderer, "add-object", {detail: {object}})
@@ -126,10 +162,13 @@ export function addObject<F extends Tool<any>>(this: F, f:<T>(e: MouseEvent)=>vo
   return listener;
 }
 
-export function updateObject<F extends Tool<any>>(this: F, f:<T>(e: MouseEvent)=>void|T){
+export function updateObject<F extends Tool<any>>(this: F, f:<T>(this: F,e: MouseEvent)=>undefined|T){
   const boundF = f.bind(this)
 
   let listener =function  <T extends Manager>(this:T, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
     let object = boundF(e);
     if(object) {
       event.call(this.renderer, "update-shape", {detail: {object}})
@@ -141,5 +180,169 @@ export function updateObject<F extends Tool<any>>(this: F, f:<T>(e: MouseEvent)=
 
   return listener;
 } 
+
+export function removeObject<F extends Tool<any>>(this: F, f:<T>(this: F,e: MouseEvent)=>undefined|T){
+  const boundF = f.bind(this)
+
+  let listener =function  <T extends Manager>(this:T, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "remove-object", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function selectObject<F extends Tool<any>>(this: F, f:<T>(this: F, e: MouseEvent)=>undefined|T){
+  const boundF = f.bind(this)
+
+  let listener =function  <T extends Manager>(this:T, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "select-object", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function highlightObject<F extends Tool<any>>(this: F, f:<T>(this: F, e: MouseEvent)=>undefined|T){
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "highlight-object", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function resizeObject < F extends Tool<any> > ( this: F, f: <T> (this: F,e: MouseEvent) =>undefined|T ){
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "resize-object", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function customizeObject< F extends Tool<any> > ( this: F, f: <T> (this: F, e: MouseEvent) =>undefined|T ) {
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "customize-object", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function addToRange< F extends Tool<any> > ( this: F, f: <T> (this: F,e: MouseEvent) =>undefined|T ) {
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "add-object-to-range", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+} 
+
+export function removeFromRange< F extends Tool<any> > ( this: F, f: <T> (this: F, e: MouseEvent) => undefined|T ) {
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "remove-object-from-range", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function resizeRange< F extends Tool<any> > ( this: F, f: <T extends QuestShape> (this: F, e: MouseEvent) => undefined|T ) {
+  const boundF = f.bind(this)
+
+  let listener =function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let object = boundF(e);
+    if(object) {
+      event.call(this.renderer, "remove-object-from-range", {detail: {object}})
+      requestRerender(this.renderer, this.toolbar.tools)
+    }else {
+      console.error("Object not returned")
+    }
+  }
+
+  return listener;
+}
+
+export function selectTool< F extends Toolbar >( this: F, f: <T extends Tool<any>> (this: F, e: MouseEvent) => T ) {
+  const boundF = f.bind(this);
+  let listener = function  <M extends Manager>(this:M, e:MouseEvent) {
+    // boundF is already perminatly bound to type F before it's used inside 
+    // the listener's 'this' context so it should be safe to use it this way
+    //@ts-ignore
+    let tool = boundF(e);
+    event.call(this.app, "attach-tool", {detail: {tool}})
+  }
+  return listener
+}
 
 

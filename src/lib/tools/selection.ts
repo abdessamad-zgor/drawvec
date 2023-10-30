@@ -95,8 +95,6 @@ export class SelectionTool implements Tool<SelectionRect> {
     this.type = "selection";
   }
 
-
-
   initialise(this: DrawQuestApp){
     // on mode Change
     // change event Listners 

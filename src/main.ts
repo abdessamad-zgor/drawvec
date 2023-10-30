@@ -1,5 +1,8 @@
 import { Renderer } from "./lib/renderer"
-import { Toolbar } from "./lib/tools";
+import { Toolbar } from "./lib/tools/index";
+import {Manager, listener} from "./lib/manager";
+
+type AppEvents = "attach-tool" 
 
 // Drawquest app mannaging rendrer and toolbar and managing events between
 // rendrer and toolbar
@@ -7,43 +10,20 @@ class DrawQuestApp extends EventTarget {
   renderer: Renderer;
   toolbar: Toolbar;
   canvas: HTMLCanvasElement;
-
+  manager: Manager;
+  events: Map<AppEvents, ReturnType<typeof listener>["listener"]
   constructor(canvasId: string) {
     super();
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    this.toolbar = new Toolbar("toolbar", this);
+    this.toolbar = new Toolbar("toolbar");
     this.renderer = new Renderer(this);
-    
+    this.manager = new Manager(this.toolbar, this.renderer, this)
     // attach event-listeners from default selected 
-    let { onmousemove, onmousedown, onmouseup, onclick } = this.toolbar.selectedTool().initialise.call(this);
-    this.canvas.onmousemove = onmousemove;
-    this.canvas.onmouseup = onmouseup;
-    this.canvas.onmousedown = onmousedown;
-    if(onclick) this.canvas.onclick = onclick;
-    else this.canvas.onclick = null;
+    let { onmousemove, onmousedown, onmouseup, onclick } = this.toolbar.initialise();
   }
 
   initialise() {
-    // on 'rerender' pass the tools object to use them to draw the objects
-    this.addEventListener("rerender", (e)=>{
-      let rerenderEvent = new CustomEvent("rerender", {
-        detail: {
-          tools: this.toolbar.tools
-        }
-      });
-      this.renderer.dispatchEvent(rerenderEvent);
-    });
-
-    // on 'selected-tool' attach new event-listeners to the canvas
-    this.addEventListener("selected-tool", (e)=>{
-      console.log("main.ts, line 33, isDrawQuestApp = ", this);
-      let { onmousemove, onmousedown, onmouseup, onclick } = this.toolbar.selectedTool().initialise.call(this);
-      this.canvas.onmousemove = onmousemove;
-      this.canvas.onmouseup = onmouseup;
-      this.canvas.onmousedown = onmousedown;
-      if(onclick) this.canvas.onclick = onclick;
-      else this.canvas.onclick = null;
-    });
+    this.manager.attachTargetEventListener(this, listener())
   }
 }
 
