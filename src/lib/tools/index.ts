@@ -51,7 +51,6 @@ class Toolbar extends EventTarget {
 
   selectedTool() {
     let tool = Object.keys(this.tools).map(k=>this.tools[k]).find(tl=>tl.active) as ToolsType;
-    console.log(tool);
     return tool; 
   }
 }

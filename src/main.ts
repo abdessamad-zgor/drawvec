@@ -24,10 +24,7 @@ class DrawQuestApp extends EventTarget {
     this.events = new Map();
     // attach event-listeners from default selected 
     let listeners = this.toolbar.selectedTool().initialise();
-    console.log(listeners)
     for (let eventName of Object.keys(listeners)){
-      console.log(eventName)
-      console.log(listeners[eventName as keyof typeof listeners])
       //@ts-ignore
       this.manager.attachCanvasEventListener(listener.call(this.manager, eventName, listeners[eventName as keyof typeof listeners]));
     }
