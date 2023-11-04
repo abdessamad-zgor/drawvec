@@ -1,15 +1,13 @@
 {
   "name": "drawquest",
-  "module": "src/index.ts",
   "devDependencies": {
-    "@types/node": "^20.6.3",
-    "@types/web": "^0.0.115",
-    "bun-types": "latest",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
   },
   "scripts": {
-    "build": "bun run config/build.js",
-    "deploy": ""
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "type": "module"
 }

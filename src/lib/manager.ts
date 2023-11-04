@@ -171,6 +171,7 @@ export function addObject<Q extends QuestShape, T>(this: Tools<T>, f:( this: Too
 }
 
 export function updateObject<Q extends QuestShape, T>(this: Tools <T>, f:(this: Tools <T>,e: MouseEvent)=>undefined|Q){
+  console.log("update")
   const boundF = f.bind(this)
 
   let listener =function  <T extends Manager>(this:T, e:MouseEvent) {

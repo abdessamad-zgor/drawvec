@@ -41,6 +41,7 @@ export class RectangleTool implements Tool<Rectangle> {
   initialise(){
     
   let onmousemove = updateObject.call(this, function (this: RectangleTool ,e: MouseEvent){
+      console.log("mouse mouve")
       if(this.current) {
         this.current.update(e)
         return this.current;

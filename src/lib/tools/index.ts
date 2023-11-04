@@ -50,7 +50,9 @@ class Toolbar extends EventTarget {
   }
 
   selectedTool() {
-    return Object.keys(this.tools).map(k=>this.tools[k]).find(tl=>tl.active) as ToolsType;
+    let tool = Object.keys(this.tools).map(k=>this.tools[k]).find(tl=>tl.active) as ToolsType;
+    console.log(tool);
+    return tool; 
   }
 }
 
