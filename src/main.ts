@@ -1,6 +1,8 @@
 import { Renderer } from "./lib/renderer"
-import { Toolbar } from "./lib/tools/index";
+import { Toolbar, QuestEvent } from "./lib/tools/index";
 import {Manager, listener} from "./lib/manager";
+import { ToolsType } from "./lib/tools/index";
+import { Listeners } from "./lib/utils";
 
 type AppEvents = "attach-tool" 
 
@@ -11,19 +13,33 @@ class DrawQuestApp extends EventTarget {
   toolbar: Toolbar;
   canvas: HTMLCanvasElement;
   manager: Manager;
-  events: Map<AppEvents, ReturnType<typeof listener>["listener"]
+  events: Map<AppEvents, ReturnType<typeof listener>["listener"]>;
+
   constructor(canvasId: string) {
     super();
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     this.toolbar = new Toolbar("toolbar");
     this.renderer = new Renderer(this);
-    this.manager = new Manager(this.toolbar, this.renderer, this)
+    this.manager = new Manager(this.toolbar, this.renderer, this.canvas);
+    this.events = new Map();
     // attach event-listeners from default selected 
-    let { onmousemove, onmousedown, onmouseup, onclick } = this.toolbar.initialise();
+    let listeners = this.toolbar.selectedTool().initialise();
+    for (let eventName in Object.keys(listeners)){
+      let boundListener = this.manager.bindTargetListener(this.manager, listener); 
+      //@ts-ignore
+      this.manager.attachCanvasEventListener(boundListener(eventName, listeners[eventName as keyof typeof listeners]));
+    }
   }
 
   initialise() {
-    this.manager.attachTargetEventListener(this, listener())
+    let boundAttachToolListner = this.manager.bindListener(listener)
+    this.manager.attachTargetEventListener(this, boundAttachToolListner("attach-tool", <D extends ToolsType>(e: QuestEvent<D>)=>{
+      let listeners = e.detail.initialise();
+      for (let eventName in Object.keys(listeners)){
+        let boundListener = this.manager.bindTargetListener(this.manager, listener); 
+        this.manager.attachCanvasEventListener(boundListener(eventName, listeners[eventName as keyof typeof listeners]))
+      }
+    }));
   }
 }
 

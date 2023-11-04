@@ -1,4 +1,3 @@
-import { DrawQuestApp } from "../main"
 import { Manager } from "./manager";
 
 // the buffer height between selectionRectangle and selected object
@@ -19,18 +18,24 @@ export interface QRectangle extends QuestShape {
 
 // represents the event Listeners that would be binded to the canvas element
 export type Listeners = {
-    [key: string]: <E extends Event>(this:Manager, e:E)=>void,
+  onmouseup?: (this:Manager, e: MouseEvent)=>void,
+  onmousedown?: (this:Manager, e: MouseEvent)=>void,
+  onmousemove?: (this:Manager, e: MouseEvent)=>void,
+  onclick?: (this:Manager, e: MouseEvent)=>void,
 }
+
+
 
 // represent a generic Tool it takes a T type parameter
 // the T is the type of object that the tool creates (create method)
 export interface Tool<T extends QuestShape> {
     active: boolean,
     type: QuestType,
+    current: QuestShape|null,
     draw(this: CanvasRenderingContext2D, q: QuestShape): void,
     on():void,
     off():void,
-    initialise(this: DrawQuestApp): Listeners,
+    initialise(): Listeners,
     create(e:Event): T
 }
 
@@ -119,3 +124,6 @@ export function inRect(p:[number, number], coords: QuestShape['_coords']):boolea
     return p[0]>coords[0][0] && p[0]<coords[1][0] && p[1]>coords[0][1] && p[1]<coords[3][1]
 }
 
+//export function createSelectionRect(q: QuestShape): QSelectionRect {
+//
+//}

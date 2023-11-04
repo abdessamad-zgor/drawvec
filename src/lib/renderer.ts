@@ -1,9 +1,8 @@
 import { DrawQuestApp } from "../main";
 import type {QuestShape} from "./utils"
 
-class Renderer extends EventTarget {
+export class Renderer extends EventTarget {
     // holds the current object being edited
-    _current: QuestShape | null;
     // shadow context used to (hopefully) speed-up rerenders
     _Qcontext: CanvasRenderingContext2D;
     // the objects array holds the shapes on the canvas
@@ -13,7 +12,6 @@ class Renderer extends EventTarget {
 
     constructor (app: DrawQuestApp ) {
         super();
-        this._current = null;
         this.objects = [];
         this._Qcontext = (app.canvas.cloneNode() as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D;
         this.appRef = app;
@@ -39,14 +37,5 @@ class Renderer extends EventTarget {
         });
 
     }
-
-    getCurrentObject() {
-        return this._current;
-    }
-
-    setCurrentObject(q: QuestShape|null) {
-        this._current = q;
-    }
 }
 
-export {Renderer};

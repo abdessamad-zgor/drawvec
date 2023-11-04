@@ -1,4 +1,4 @@
-import {Coordinates, Tool, QuestShape, QRectangle, generateRef, UpdateShape} from "../utils"
+import {Tool, QuestShape, QRectangle, generateRef, UpdateShape} from "../utils"
 import { updateObject, addObject } from "../manager";
 
 export class Rectangle implements QRectangle {
@@ -40,7 +40,7 @@ export class RectangleTool implements Tool<Rectangle> {
   // setup event listners on the canvas
   initialise(){
     
-    let onmousemove = updateObject.call(this, function (this: RectangleTool, e: MouseEvent){
+  let onmousemove = updateObject.call(this, function (this: RectangleTool ,e: MouseEvent){
       if(this.current) {
         this.current.update(e)
         return this.current;
@@ -48,12 +48,12 @@ export class RectangleTool implements Tool<Rectangle> {
       return;
     })
 
-    let onmousedown = addObject.call(this, function(this: RectangleTool, e: MouseEvent){
+    let onmousedown = addObject.call(this, function(e: MouseEvent){
       this.current = this.create(e);
-      return this.current
+      return this.current;
     })
 
-    let onmouseup = updateObject.call(this, function(this: RectangleTool, e: MouseEvent){
+    let onmouseup = updateObject.call(this, function(e: MouseEvent){
       let current = {...this.current} as QRectangle
       this.current = null
       current.update(e)
@@ -85,6 +85,4 @@ export class RectangleTool implements Tool<Rectangle> {
     let shape = new Rectangle(e);
     return shape;
   }
-
-
 }

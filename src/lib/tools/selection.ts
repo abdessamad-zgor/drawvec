@@ -7,6 +7,7 @@ export class SelectionRect implements QSelectionRect {
   origin: [number, number];
   ref: string;
   children: QuestShape[];
+  
   constructor(any: MouseEvent|QuestShape){
     if(!isQuestShape(any)){
       this.ref = generateRef(),
@@ -89,13 +90,14 @@ export class SelectionRect implements QSelectionRect {
 export class SelectionTool implements Tool<SelectionRect> {
   active: boolean;
   type: "selection"= "selection";
-  
+  current: SelectionRect|null
+
   constructor() {
     this.active = false;
-    this.type = "selection";
+    this.current = null
   }
 
-  initialise(this: DrawQuestApp){
+initialise(){
     // on mode Change
     // change event Listners 
   let onmousemove = (e: MouseEvent)=>{ 

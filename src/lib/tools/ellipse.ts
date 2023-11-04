@@ -1,6 +1,6 @@
 import { QEllipse, generateRef, Tool, QuestShape } from "../utils";
 import { UpdateShape } from "../utils";
-import { addObject, updateShape } from "../manager";
+import { addObject, updateObject } from "../manager";
 
 export class Ellipse implements QEllipse {
   ref: string;
@@ -28,8 +28,8 @@ export class Ellipse implements QEllipse {
 
 export class EllipseTool implements Tool<QEllipse> { 
   active: boolean; // true if tool is currently toggled
-  type: "ellipse"= "ellipse"; // represents the type of QuestShape created
-  current: QuestShape | null
+  type: "ellipse" = "ellipse"; // represents the type of QuestShape created
+  current: QEllipse | null
 
   constructor() {
     this.active = false;
@@ -39,7 +39,7 @@ export class EllipseTool implements Tool<QEllipse> {
   // setup tool behavior on specific event
   // for this stage this is enough but more complex tools will require a diffrent mechanism 
   initialise(){
-    let onmousemove = updateObject((e: MouseEvent)=>{
+    let onmousemove = updateObject.call(this, function (this: EllipseTool, e: MouseEvent){
       if(this.current) {
         this.current.update(e)
         return this.current;
@@ -47,12 +47,12 @@ export class EllipseTool implements Tool<QEllipse> {
       return;
     })
 
-    let onmousedown = addObject((e: MouseEvent)=>{
+    let onmousedown = addObject.call(this, function (this: EllipseTool, e: MouseEvent){
       this.current = this.create(e);
       return this.current;
     })
 
-    let onmouseup = updateObject((e: MouseEvent)=>{
+    let onmouseup = updateObject.call(this, function(this:EllipseTool, e: MouseEvent){
       let current = {...this.current} as QEllipse
       this.current = null
       current.update(e)
