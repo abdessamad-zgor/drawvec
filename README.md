@@ -1,15 +1,11 @@
 # drawquest
+a digital drawing board, with real-time collaboration.
 
-To install dependencies:
+# In progress
 
-```bash
-bun install
-```
+- init version      [X]
+- shape tools       [X]
+- toolbar           [X]
+- manager           [ ]
+- selection tools   [ ]
 
-To run:
-
-```bash
-bun run src/index.ts
-```
-
-This project was created using `bun init` in bun v1.0.0. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
