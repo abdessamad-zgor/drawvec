@@ -89,7 +89,7 @@ export class SelectionRect implements QSelectionRect {
 
 export class SelectionTool implements Tool<SelectionRect> {
   active: boolean;
-  type: "selection"= "selection";
+  static type: "selection"= "selection";
   current: SelectionRect|null
 
   constructor() {
@@ -97,22 +97,10 @@ export class SelectionTool implements Tool<SelectionRect> {
     this.current = null
   }
 
-initialise(){
+  initialise(){
     // on mode Change
     // change event Listners 
-  let onmousemove = (e: MouseEvent)=>{ 
-      // how many cases for on mousemove
-      let current = this.renderer.getCurrentObject() ;
-      if(current) {
-        current.update(e);
-        let rerenderEvent = new CustomEvent("rerender", { detail: { tools: this.toolbar.tools } })
-        this.renderer.dispatchEvent(rerenderEvent);
-      } else {
-        let tool = this.toolbar.selectedTool() as SelectionTool;
-        let shapeInRange = tool.shapeInRange(e, this.renderer.objects);
-        if(shapeInRange) this.canvas.style.cursor = "pointer"
-        else this.canvas.style.cursor = "default"
-      }
+    let onmousemove = (e: MouseEvent)=>{ 
     }
 
     let onmousedown = (e: MouseEvent)=>{
@@ -138,7 +126,7 @@ initialise(){
         let selection = this.toolbar.selectedTool() as SelectionTool
         let shape = selection.shapeInRange(e, this.renderer.objects)
         if(shape) {
-           this.renderer.setCurrentObject(toSelectionRect(shape))
+          this.renderer.setCurrentObject(toSelectionRect(shape))
         }
 
       }
@@ -171,7 +159,6 @@ initialise(){
   shapeInRange(e:MouseEvent, objects: QuestShape[]){
     for (let shape of objects) {
       let bigRect:QuestShape['_coords'] = [
-
         [shape._coords[0][0]-RangeMargin, shape._coords[0][1]-RangeMargin],
         [shape._coords[1][0]+RangeMargin, shape._coords[1][1]-RangeMargin],
         [shape._coords[2][0]+RangeMargin, shape._coords[2][1]+RangeMargin], 

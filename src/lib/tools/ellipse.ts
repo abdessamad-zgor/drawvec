@@ -28,7 +28,7 @@ export class Ellipse implements QEllipse {
 
 export class EllipseTool implements Tool<QEllipse> { 
   active: boolean; // true if tool is currently toggled
-  type: "ellipse" = "ellipse"; // represents the type of QuestShape created
+  static type: "ellipse" = "ellipse"; // represents the type of QuestShape created
   current: QEllipse | null
 
   constructor() {

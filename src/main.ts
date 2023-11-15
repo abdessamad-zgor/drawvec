@@ -20,8 +20,13 @@ class DrawQuestApp extends EventTarget {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     this.toolbar = new Toolbar("toolbar");
     this.renderer = new Renderer(this);
-    this.manager = new Manager(this.toolbar, this.renderer, this.canvas);
+    this.manager = new Manager(this.toolbar, this.renderer, this);
     this.events = new Map();
+    // attach selectTool emitter to Toolbar
+    let listener = this.toolbar.initialise();
+
+    this.manager.attachTargetEventListener(this.toolbar.toolsDiv, this.manager.bindListener(listener))
+
     // attach event-listeners from default selected 
     let listeners = this.toolbar.selectedTool().initialise();
     for (let eventName of Object.keys(listeners)){

@@ -16,6 +16,7 @@ export type QuestEvent<D = void> = D extends QuestShape ?
   CustomEvent<ToolsType> : MouseEvent; 
 
 class Toolbar extends EventTarget {
+  name = "toolbar"
   // tools within the toolbar
   tools: {[key: string]: ToolsType} = {};
   // id of the div element containing the toolbar
@@ -23,35 +24,34 @@ class Toolbar extends EventTarget {
 
   constructor (toolbarId: string) {
     super();
-    let selectTool = new SelectionTool();
-    let rectTool = new RectangleTool();
-    let ellipTool = new EllipseTool();
 
-    rectTool.on();
-
-    this.tools[selectTool.type] = selectTool;
-    this.tools[rectTool.type] = rectTool;
-    this.tools[ellipTool.type] = ellipTool;
+    this.tools[SelectionTool.type] = new SelectionTool();
+    this.tools[RectangleTool.type] = new RectangleTool();
+    this.tools[EllipseTool.type] = new EllipseTool();
     
     this.toolsDiv = document.getElementById(toolbarId) as HTMLDivElement
   }
 
-  initialse() {
-    let onclick = selectTool.call(this, function(this: Toolbar, e: MouseEvent){
+  initialise(){
+    let listener = selectTool.call(this, function(this: Toolbar, e: MouseEvent){
       let id = (e.currentTarget as HTMLElement).id;
       Object.keys(this.tools).forEach(k=>{
          if ( k == id ) this.tools[id].on();
          else this.tools[k].off()
       });
-
       return this.tools[id]
     })
-    return onclick
+    return listener;
   }
 
   selectedTool() {
     let tool = Object.keys(this.tools).map(k=>this.tools[k]).find(tl=>tl.active) as ToolsType;
-    return tool; 
+    if (tool)
+      return tool; 
+    else {
+      this.tools["rectangle"].on();
+      return this.tools["rectangle"];
+    }
   }
 }
 

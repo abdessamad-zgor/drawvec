@@ -1,7 +1,7 @@
-import { Renderer } from "./renderer";
-import { QuestShape, RangeMargin, Tool } from "./utils";
-import { QuestEvent, Toolbar, Tools, ToolsType } from "./tools/index";
-import { DrawQuestApp } from "../main";
+import { Renderer } from "../renderer";
+import { QuestShape, RangeMargin, Tool } from "../utils";
+import { QuestEvent, Toolbar, Tools, ToolsType } from "../tools/index";
+import { DrawQuestApp } from "../../main";
 
 /**
  * given a this context that extends EventTarget , eventName and detail , it will create a custom event with the
@@ -19,7 +19,7 @@ export function requestRerender(target: Renderer, tools: Toolbar["tools"]) {
   event.call(target, "rerender", {tools});
 }
 
-type Listener<T,Q> = (this:T, e: QuestEvent)=>void
+type Listener<T = EventTarget, Q = QuestEvent> = (this:T, e: Q) => void
 
 /**
  * a manager that holds the refs of all the the other components, 
@@ -32,46 +32,47 @@ export class Manager extends EventTarget {
   app: DrawQuestApp
 
   // register events that the EventTarget listen to 
-  events: Map<string, ReturnType<typeof listener>["listener"]>
+  events: Map<string, Map<string, Listener>>
 
   constructor(toolbar: Toolbar, renderer: Renderer, app: DrawQuestApp ){
     super();
     this.toolbar = toolbar;
     this.renderer = renderer;
     this.app = app;
-
     this.events = new Map();
   }
 
-  attachCanvasEventListener(r: ReturnType<typeof listener>){
+  attachCanvasEventListener(listener: Listener, name: string){
+    let canvasListeners = this.events.get("canvas");
     // guard against incorrect use (event name not a native DOM event)
-    if(this.events.has(r.name)){
+    if(canvasListeners?.has(name)){
       //@ts-ignore
-      this.app.canvas.removeEventListener(r.name, this.events.get(r.name));
+      this.app.canvas.removeEventListener(name, canvasListeners.get(name));
     } 
-    this.events.set(r.name, r.listener);
+    canvasListeners?.set(name, listener);
     //@ts-ignore
-    this.app.canvas.addEventListener(r.name, r.listener);
+    this.app.canvas.addEventListener(name, listener);
   }
 
-  bindListener(fListner: typeof listener){
+  bindListener(fListner: Listener): Listener<Manager>{
     return fListner.bind(this);
   }
 
-  static attachTargetEventListener<T extends EventTarget & {events: Map<string, ReturnType<typeof listener>["listener"]>}>
-  (target: T, r: ReturnType<typeof listener>)
+  attachTargetEventListener<T extends EventTarget & {name: string}>
+  (target: T, listener: Listener, name: string)
   {
-    if(target.events.get(r.name)) {
+    let targetListeners = this.events.get(target.name);
+    if(targetListeners?.get(name)) {
       //@ts-ignore
-      target.removeEventListener(r.name, target.events.get(r.name) ?? null);// used null so TS compiler would shut the fuck up
+      target.removeEventListener(name, targetListeners.get(name) ?? null);// used null so TS compiler would shut the fuck up
     }
-    target.events.set(r.name ,r.listener);
+    targetListeners?.set(name ,listener as Listener);
     //@ts-ignore
-    target.addEventListener(r.name, r.listener);
+    target.addEventListener(name, listener);
   }
 
-  static bindTargetListener <T extends EventTarget & {events: Map<string, ReturnType<typeof listener>["listener"]>}>
-  (target: T, fListener: typeof listener )
+  bindTargetListener <T extends EventTarget & {name: string}>
+  (target: T, fListener: Listener): Listener<T>
   {
     return fListener.bind(target);
   }
@@ -283,7 +284,7 @@ export function resizeRange<Q extends QuestShape, F extends ToolsType> ( this: F
   return listener;
 }
 
-export function selectTool< F extends Toolbar >( this: F, f: <Q extends QuestShape, T extends Tool<Q>> (this: F, e: MouseEvent) => ToolsType ) {
+export function selectTool< F extends Toolbar >( this: F, f: <Q extends QuestShape, T extends Tool<Q>> (this: F, e: MouseEvent) => ToolsType ):Listener<Manager,MouseEvent> {
   const boundF = f.bind(this);
   let listener = function  <M extends Manager>(this:M, e:MouseEvent) {
     // boundF is already perminatly bound to type F before it's used inside 

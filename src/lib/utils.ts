@@ -30,7 +30,6 @@ export type Listeners = {
 // the T is the type of object that the tool creates (create method)
 export interface Tool<T extends QuestShape> {
     active: boolean,
-    type: QuestType,
     current: QuestShape|null,
     draw(this: CanvasRenderingContext2D, q: QuestShape): void,
     on():void,

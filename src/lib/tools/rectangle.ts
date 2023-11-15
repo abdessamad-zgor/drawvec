@@ -28,12 +28,11 @@ export class Rectangle implements QRectangle {
 export class RectangleTool implements Tool<Rectangle> {
 
   active: boolean; // is tool toggled
-  type: "rectangle" = "rectangle";
+  static type: "rectangle" = "rectangle";
   current: QuestShape | null
   
   constructor() {
     this.active = false;
-    this.type = "rectangle";
     this.current = null
   }
 
@@ -50,6 +49,7 @@ export class RectangleTool implements Tool<Rectangle> {
     })
 
     let onmousedown = addObject.call(this, function(e: MouseEvent){
+      console.log("add object:")
       this.current = this.create(e);
       return this.current;
     })
