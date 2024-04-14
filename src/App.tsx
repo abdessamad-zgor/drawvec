@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Home from './pages/Home'
+import Home from './views/Home'
+import NotFound from './views/NotFound'
 
 import './App.css'
 
@@ -8,6 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path='*' element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
