@@ -48,12 +48,6 @@ export type Ellipse = {
   ry: number;
 }
 
-export type Circle = {
-  cx: number;
-  cy: number;
-  r: number;
-}
-
 export type Line = {
   x1: number;
   x2: number;
@@ -66,6 +60,21 @@ export type Path = {
   closed?: boolean;
 }
 
-export type Shape = Rectangle | Circle | Ellipse | Line | Path;
+export type Shape = Rectangle | Ellipse | Line | Path;
+export type Id<T = {}> = { id: string } & T;
+export type Type<T> = { type: ShapeType } & T;
 
-export type Id<T> = { id: string } & T;
+export enum ShapeType {
+  RECTANGLE = "RECTANGLE",
+  ELLIPSE = "ELLIPSE",
+  LINE = "LINE",
+  PATH = "PATH",
+}
+
+export enum Tool {
+  RECTANGLE = "RECTANGLE",
+  ELLIPSE = "ELLIPSE",
+  LINE = "LINE",
+  PATH = "PATH",
+  SELECTION = "SELECTION"
+} 

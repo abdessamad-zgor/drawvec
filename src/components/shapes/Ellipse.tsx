@@ -1,9 +1,9 @@
 import React from 'react'
-import type { Ellipse } from '../../utils/types'
+import type { Ellipse, Id } from '@/lib/types'
 
-function Ellipse({ rx, ry, cx, cy }: Ellipse) {
+function Ellipse(props: Id) {
   return (
-    <ellipse rx={rx} ry={ry} cx={cx} cy={cy} />
+    <ellipse />
   )
 }
 

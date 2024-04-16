@@ -1,7 +1,7 @@
 import React from 'react'
-import type { Line } from '../../utils/types'
+import type { Line, Id } from '@/lib/types'
 
-function Line(props: Line) {
+function Line(props: Id) {
   return (
     <line {...props} />
   )
