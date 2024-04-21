@@ -1,10 +1,10 @@
 import { atom, Atom, useAtom } from "jotai"
 import { Id, Shape, ShapeType, Type } from "@/lib/types"
-import { randomUUID } from "crypto";
+import { PrimitiveAtom } from "jotai/vanilla";
 
-export let shapeAtoms = atom<Id<Type<Atom<Shape>>>[]>([])
+export let shapeAtoms = atom<Id<Type<PrimitiveAtom<Shape>>>[]>([])
 
-export const addShape = (shape: Atom<Shape>, type: ShapeType) => {
+export const addShape = (shape: PrimitiveAtom<Shape>, type: ShapeType) => {
   const [_, setShapeAtoms] = useAtom(shapeAtoms);
   setShapeAtoms(objs => ([...objs, { id: randomUUID(), type, ...shape }]))
 }
