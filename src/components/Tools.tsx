@@ -8,7 +8,9 @@ function Tools() {
       {
         Object.values(Tool).filter(v => isNaN(Number(v))).map(
           t =>
-            <div onClick={() => selectTool(Tool[t])} className='basis-1/4 border'>{t.charAt(0).toUpperCase()}</div>
+            <div onClick={() => selectTool(Tool[t])} className='basis-1/4 border'>
+              {t.charAt(0).toUpperCase()}
+            </div>
         )
       }
     </div>

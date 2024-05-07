@@ -1,4 +1,5 @@
 import { atom, Atom, useAtom } from "jotai"
+import { v4 as uuid } from "uuid"
 import { Id, Shape, ShapeType, Type } from "@/lib/types"
 import { PrimitiveAtom } from "jotai/vanilla";
 
@@ -6,7 +7,7 @@ export let shapeAtoms = atom<Id<Type<PrimitiveAtom<Shape>>>[]>([])
 
 export const addShape = (shape: PrimitiveAtom<Shape>, type: ShapeType) => {
   const [_, setShapeAtoms] = useAtom(shapeAtoms);
-  setShapeAtoms(objs => ([...objs, { id: randomUUID(), type, ...shape }]))
+  setShapeAtoms(objs => ([...objs, { id: uuid(), type, ...shape }]))
 }
 
 export const removeShape = (id: string) => {
