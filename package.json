@@ -18,6 +18,7 @@
     "tailwindcss": "^3.4.4"
   },
   "scripts": {
-    "dev": "nodemon app.js"
+    "prestart": "npx tailwindcss --input ./style.css --output ./public/style.css && esbuild ./src/app.js --format=esm --bundle --outfile=public/app.js && esbuild app.js --platform=node --format=esm --bundle --outfile=bin/drawvec && printf \"%s\n%s\n\" \"#!/usr/bin/env node\" \"$(cat bin/drawvec)\" >bin/drawvec && chmod +x bin/drawvec",
+    "start": "node app.js"
   }
 }
